@@ -211,9 +211,9 @@ def make_files_table(folder, wellinfo):
         fullfilename.append(i)
     files = {'siteid':site_id,'extensions':exten,'date':dates,'full_file_name':fullfilename}
     files = pd.DataFrame(files)
-    files['filedups'] = files.duplicated(subset='siteid')
-    files['LoggerTypeID'] = files['filedups'].astype('int')+1
-    files['LoggerTypeName']=files['extensions'].apply(lambda x: 'Solinst' if x=='.xle' else 'Global Water')
+    #files['filedups'] = files.duplicated(subset='siteid')
+    #files['LoggerTypeID'] = files['filedups'].astype('int')+1
+    files['LoggerTypeName']=files['extensions'].apply(lambda x: 'Global Water' if x=='.csv' else 'Solinst',1)
     files.drop_duplicates(subset='siteid',take_last=True,inplace=True)
 
     #wellinfo = pd.read_csv(wellinfofile,header=0,index_col=0)
