@@ -1,4 +1,4 @@
--*- coding: utf-8 -*-
+#-*- coding: utf-8 -*-
 import pandas as pd
 import numpy as np
 import os
@@ -213,7 +213,7 @@ def make_files_table(folder, wellinfo):
     files = pd.DataFrame(files)
     files['filedups'] = files.duplicated(subset='siteid')
     files['LoggerTypeID'] = files['filedups'].astype('int')+1
-    files['LoggerTypeName']=files['LoggerTypeID'].apply(lambda x: 'Solinst' if x==2 else 'Global Water')
+    files['LoggerTypeName']=files['extensions'].apply(lambda x: 'Solinst' if x=='.xle' else 'Global Water')
     files.drop_duplicates(subset='siteid',take_last=True,inplace=True)
 
     #wellinfo = pd.read_csv(wellinfofile,header=0,index_col=0)
