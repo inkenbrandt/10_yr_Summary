@@ -464,7 +464,7 @@ def imp_new_well(infile, wellinfo, manual, baro):
 
         # Barometric Efficiency Correction
         print('Efficiency = '+str(be))
-        g['BaroEfficiencyCorrected'] = g[['MeasuredLevel',bp]].apply(lambda x: x[0] - x[1] + x[1]*float(be), 1)
+        g['BaroEfficiencyLevel'] = g[['MeasuredLevel',bp]].apply(lambda x: x[0] - x[1] + x[1]*float(be), 1)
     else: # Reads Global Water Raw File
         f = pd.read_csv(infile,skiprows=1,parse_dates=[[0,1]])
         f = f.reset_index()
@@ -513,9 +513,9 @@ def imp_new_well(infile, wellinfo, manual, baro):
         # Barometric Efficiency Correction
         #g['BaroEfficiencyCorrected'] = g['MeasuredLevel'] + be*g[bp]
         print('Efficiency = '+str(be))
-        g['BaroEfficiencyCorrected'] = g[['MeasuredLevel',str(bp)]].apply(lambda x: x[0] + x[1]*float(be), 1)
+        g['BaroEfficiencyLevel'] = g[['MeasuredLevel',str(bp)]].apply(lambda x: x[0] + x[1]*float(be), 1)
                 
-    g['DeltaLevel'] = g['BaroEfficiencyCorrected'] - g['BaroEfficiencyCorrected'][0]
+    g['DeltaLevel'] = g['BaroEfficiencyLevel'] - g['BaroEfficiencyLevel'][0]
     
     # Match manual water level to closest date
     g['MeasuredDTW'] = fcl(manual[manual['WellID']== wellid],min(g.index.to_datetime()))[1]-g['DeltaLevel']
@@ -543,22 +543,26 @@ def imp_new_well(infile, wellinfo, manual, baro):
     g['WaterElevation'] = g['WaterElevation'].apply(lambda x: round(x,2))
     # assign tape value
     g['Tape'] = 0
-    g['MeasuredBy'] = ''
+    g['MeasuredByID'] = 0
     
     # generate new file
-    pathlist = os.path.splitext(infile)[0].split('\\')
-    outpath = pathlist[0] + '\\' + pathlist[1] + '\\' + pathlist[2] + '\\' + pathlist[3] + '\\' + pathlist[4] + '\\' + str(wellname) + '.csv'  
-    g.to_csv(outpath)
+#    pathlist = os.path.splitext(infile)[0].split('\\')
+#    outpath = pathlist[0] + '\\' + pathlist[1] + '\\' + pathlist[2] + '\\' + pathlist[3] + '\\' + pathlist[4] + '\\' + str(wellname) + '.csv'  
+#
     g['DateTime'] = g.index.to_datetime()
-    g.to_csv(outpath, index=False, columns= ["WellID","DateTime","MeasuredLevel","Temp","BaroEfficiencyCorrected","DeltaLevel",
-                                             "MeasuredDTW","DriftCorrection","DTWBelowCasing","DTWBelowGroundSurface",
-                                             "WaterElevation","Tape","MeasuredBy"])
-    return g
+#    g.to_csv(outpath, index=False, columns= ["WellID","DateTime","MeasuredLevel","Temp","BaroEfficiencyCorrected","DeltaLevel",
+#                                             "MeasuredDTW","DriftCorrection","DTWBelowCasing","DTWBelowGroundSurface",
+#                                             "WaterElevation","Tape","MeasuredBy"])
+    g = g.loc[:,["WellID","DateTime","MeasuredLevel","Temp","BaroEfficiencyLevel","DeltaLevel", 
+                 "MeasuredDTW","DriftCorrection","DTWBelowCasing","DTWBelowGroundSurface",
+                 "WaterElevation","Tape","MeasuredByID"]]
+    maxDrift = g['DriftCorrection'][-1]
+    return g, maxDrift, wellname
 
 
 # Use `g[wellinfo[wellinfo['Well']==wellname]['closest_baro']]` instead if you want to match the closest barometer to the data
 
- def manualset(wellbaro,manualfile, manmeas=0, meas=1):
+def manualset(wellbaro,manualfile, manmeas=0, meas=1):
     breakpoints = []
     bracketedwls = {}
 
